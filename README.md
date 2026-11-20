@@ -1,81 +1,87 @@
-# Zabbix Agent 2 – Debian 13
+# OSY: Automatická registrace Debianu 13 do Zabbixu
 
-## Cíl projektu
+## 1. Popis projektu
 
-Cílem projektu je vytvoření virtuálního stroje s operačním systémem Debian 13 pomocí nástroje Vagrant a automatická instalace a konfigurace Zabbix Agent 2 verze 8.0 LTS.
+Tento projekt vznikl v rámci předmětu Operační systémy (OSY). Jeho cílem je automatizovat vytvoření virtuálního serveru s operačním systémem Debian 13 a jeho připojení do monitorovacího systému Zabbix 8.0 LTS.
 
-Agent je nastaven pro automatickou registraci na Zabbix serveru `enceladus.pfsense.cz`.
+Pro vytvoření a konfiguraci virtuálního stroje je využit nástroj **Vagrant** ve spolupráci s **VirtualBoxem**. Instalace a nastavení Zabbix Agent 2 probíhá automaticky prostřednictvím provisioning skriptů, bez nutnosti ruční instalace uvnitř virtuálního stroje.
 
-## Použité technologie
+## 2. Použité technologie
 
-- Debian 13 (Trixie)
-- Oracle VirtualBox
-- Vagrant
-- Zabbix Agent 2 – 8.0 LTS
-- Bash
-- Git a GitHub
+- **Debian 13** – operační systém virtuálního stroje.
+- **Vagrant** – automatizované vytváření a správa virtuálního stroje.
+- **VirtualBox** – virtualizační platforma.
+- **Zabbix Agent 2 8.0 LTS** – monitorovací agent.
+- **Bash** – instalační a konfigurační skripty.
+- **Git a GitHub** – správa verzí a odevzdání projektu.
 
-## Struktura projektu
+## 3. Princip fungování
 
-```text
-├── Images/
-├── .gitignore
-├── LICENSE
-├── README.md
-├── Vagrantfile
-├── configure-zabbix-agent.sh
-└── install-zabbix-agent.sh
-```
+Celé nasazení je automatizováno pomocí souboru `Vagrantfile` a dvou provisioning skriptů.
 
-## Instalace a konfigurace
+Postup nasazení:
 
-Instalace a konfigurace probíhá automaticky prostřednictvím provisioning skriptů připojených ve Vagrantfile.
+1. Vagrant vytvoří virtuální stroj s Debianem 13.
+2. Spustí se instalační skript `install-zabbix-agent.sh`.
+3. Přidá se oficiální repozitář Zabbix 8.0 LTS pro Debian 13.
+4. Nainstaluje se Zabbix Agent 2.
+5. Spustí se konfigurační skript `configure-zabbix-agent.sh`.
+6. Nastaví se parametry pro automatickou registraci.
+7. Spustí a povolí se služba Zabbix Agent 2.
+8. Agent naváže aktivní spojení se Zabbix serverem a zahájí automatickou registraci.
 
-### 1. Instalace Zabbix Agent 2
+### Konfigurace Zabbix agenta
 
-Skript `install-zabbix-agent.sh` provádí:
+Agent komunikuje se serverem:
 
-- Aktualizaci seznamu balíčků.
-- Přidání oficiálního repozitáře Zabbix 8.0 pro Debian 13.
-- Instalaci Zabbix Agent 2.
-- Povolení služby při startu systému.
+`enceladus.pfsense.cz`
 
-### 2. Konfigurace Zabbix Agent 2
+Použité konfigurační parametry:
 
-Skript `configure-zabbix-agent.sh` nastavuje:
+- **Server:** `enceladus.pfsense.cz`
+- **ServerActive:** `enceladus.pfsense.cz`
+- **HostMetadata:** `SPOS`
+- **Hostname:** Jedinečný název vytvořený pomocí UUID.
 
-- Server: `enceladus.pfsense.cz`
-- ServerActive: `enceladus.pfsense.cz`
-- HostMetadata: `SPOS`
-- Jedinečný název hosta (Hostname).
+UUID se ukládá, aby se název hosta nezměnil při restartu virtuálního stroje ani při opakovaném spuštění provisioningu.
 
-Jedinečný název hosta je vytvořen pomocí UUID a uložen tak, aby zůstal stejný i po restartu virtuálního stroje a opakovaném provisioningu.
+## 4. Spuštění projektu
 
-## Spuštění projektu
+### Požadavky
 
-V kořenovém adresáři projektu spusťte PowerShell a postupujte následovně:
+Před spuštěním je potřeba mít nainstalováno:
 
-1. Spuštění virtuálního stroje:
+- Oracle VM VirtualBox
+- HashiCorp Vagrant
+- Git (pro správu verzí)
+
+### Spuštění virtuálního stroje
+
+V kořenovém adresáři projektu spusťte PowerShell nebo terminál a zadejte:
 
 ```powershell
 vagrant up
 ```
 
-2. Připojení k virtuálnímu stroji:
+Tím se vytvoří virtuální stroj, nainstaluje Debian 13 a automaticky se provedou všechny instalační a konfigurační kroky.
 
-```powershell
-vagrant ssh
-```
+### Opětovné spuštění konfigurace
 
-3. Opětovné spuštění provisioningu:
+Pokud je potřeba znovu spustit provisioning, použijte:
 
 ```powershell
 vagrant provision
 ```
 
-## Ověření funkčnosti
+## 5. Ověření funkčnosti
 
-Po dokončení instalace lze funkčnost ověřit přímo ve virtuálním stroji:
+Po dokončení provisioningu je možné ověřit instalaci a stav Zabbix Agenta 2 přímo ve virtuálním stroji.
+
+Připojení k virtuálnímu stroji:
+
+```powershell
+vagrant ssh
+```
 
 Kontrola verze agenta:
 
@@ -95,13 +101,26 @@ Kontrola konfigurace:
 grep -E '^(Hostname|Server|ServerActive|HostMetadata)=' /etc/zabbix/zabbix_agent2.conf
 ```
 
-Po automatické registraci je potřeba ověřit v rozhraní Zabbix serveru, že se host objevil, má přiřazenou správnou skupinu, štítek a šablonu pro Linux agent 2 a že ze zařízení přicházejí monitorovací data.
+Dále je potřeba ověřit na Zabbix serveru `enceladus.pfsense.cz`, že:
 
-## Dokumentace výsledku
+- Host byl úspěšně automaticky zaregistrován.
+- Host má správný jedinečný název.
+- Host je přiřazen do odpovídající skupiny.
+- Host má správný štítek a šablonu pro Linux monitoring pomocí Zabbix Agent 2.
+- Z hosta přicházejí monitorovací data.
 
-Ve složce `Images/` jsou umístěny screenshoty dokládající:
+## 6. Závěr
 
-- Registraci virtuálního stroje v Zabbixu.
-- Přiřazení monitorovací šablony.
-- Příjem monitorovacích dat.
+Cílem projektu bylo vytvoření automatizovaného řešení pro nasazení Debianu 13 s monitorovacím agentem Zabbix Agent 2 ve verzi 8.0 LTS.
 
+Díky využití Vagrantu a provisioning skriptů je možné celý proces opakovaně spustit bez nutnosti manuální instalace a konfigurace uvnitř virtuálního stroje.
+
+## 7. Screenshoty
+
+### Automatická registrace hosta v Zabbixu
+
+![Registrace Debianu 13](Images/registrace.png)
+
+### Monitorovací data
+
+![Monitorování Debianu 13](Images/monitoring.png)
