@@ -117,10 +117,4 @@ Díky využití Vagrantu a provisioning skriptů je možné celý proces opakova
 
 ## 7. Screenshoty
 
-### Automatická registrace hosta v Zabbixu
 
-![Registrace Debianu 13](Images/registrace.png)
-
-### Monitorovací data
-
-![Monitorování Debianu 13](Images/monitoring.png)
