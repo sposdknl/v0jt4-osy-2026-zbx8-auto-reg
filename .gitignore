@@ -1,0 +1,5 @@
+.vagrant/
+**/.vagrant/
+id_rsa
+**/id_rsa
+*.log
